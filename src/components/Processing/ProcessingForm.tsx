@@ -16,6 +16,7 @@ const ProcessingForm: React.FC = () => {
   const [error, setError] = useState('');
   const [qrResult, setQrResult] = useState<any>(null);
   const [location, setLocation] = useState<any>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [yieldPercentage, setYieldPercentage] = useState<number | null>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
 
@@ -52,6 +53,7 @@ const ProcessingForm: React.FC = () => {
   }, [formData.inputWeight, formData.yield]);
 
   const getCurrentLocation = () => {
+    setLocationLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -60,11 +62,15 @@ const ProcessingForm: React.FC = () => {
             longitude: position.coords.longitude.toString(),
             timestamp: new Date().toISOString()
           });
+          setLocationLoading(false);
         },
         (error) => {
           console.error('Error getting location:', error);
+          setLocationLoading(false);
         }
       );
+    } else {
+      setLocationLoading(false);
     }
   };
 
@@ -524,6 +530,28 @@ const ProcessingForm: React.FC = () => {
                   <span className="font-medium text-purple-600">Timestamp:</span>
                   <p className="text-purple-900">{new Date(location.timestamp).toLocaleString()}</p>
                 </div>
+              </div>
+              {locationLoading && (
+                <div className="mt-2 text-xs text-purple-600 flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b border-purple-600 mr-2"></div>
+                  Getting location...
+                </div>
+              )}
+            </div>
+          )}
+
+          {!location && !locationLoading && (
+            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-yellow-600" />
+                <span className="text-sm text-yellow-800">Location not captured</span>
+                <button
+                  type="button"
+                  onClick={getCurrentLocation}
+                  className="text-xs text-yellow-600 underline hover:text-yellow-700"
+                >
+                  Retry
+                </button>
               </div>
             </div>
           )}

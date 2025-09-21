@@ -244,14 +244,6 @@ const BatchTracker: React.FC = () => {
             <p className="text-gray-600 mb-4">
               Enter a Batch ID or Event ID to view the complete supply chain journey
             </p>
-            <div className="bg-blue-50 rounded-lg p-4 max-w-md mx-auto">
-              <p className="text-sm text-blue-700 font-medium mb-2">Try these sample IDs:</p>
-              <div className="space-y-1 text-sm text-blue-600 font-mono">
-                <p>HERB-1234567890-1234</p>
-                <p>COLLECTION-1234567890-1234</p>
-                <p>TEST-1234567890-1234</p>
-              </div>
-            </div>
           </div>
         )}
       </div>

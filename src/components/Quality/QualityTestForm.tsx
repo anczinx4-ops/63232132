@@ -57,6 +57,8 @@ const QualityTestForm: React.FC = () => {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [customParameters, setCustomParameters] = useState<CustomParameter[]>([]);
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
+  const [location, setLocation] = useState<LocationData | null>(null);
+  const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<FormData>({
     batchId: '',
@@ -76,6 +78,7 @@ const QualityTestForm: React.FC = () => {
   }, []);
 
   const getCurrentLocation = () => {
+    setLocationLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -84,14 +87,16 @@ const QualityTestForm: React.FC = () => {
             longitude: position.coords.longitude.toString(),
             timestamp: new Date().toISOString(),
           });
+          setLocationLoading(false);
         },
         (error) => {
           console.error('Error getting location:', error);
-          setError('Unable to get location. Please ensure location services are enabled.');
+          setLocationLoading(false);
+          // Don't set error for location - make it optional
         }
       );
     } else {
-      setError('Geolocation is not supported by this browser.');
+      setLocationLoading(false);
     }
   };
 
@@ -327,13 +332,13 @@ const QualityTestForm: React.FC = () => {
                 <p
                   className={`font-bold ${
                     qrResult.testResults.purity >= 95 && qrResult.testResults.pesticideLevel <= 0.1
-                      ? 'text-green-600'
-                      : 'text-orange-600'
+                      ? 'text-blue-600'
+                      : 'text-blue-600'
                   }`}
                 >
                   {qrResult.testResults.purity >= 95 && qrResult.testResults.pesticideLevel <= 0.1
-                    ? 'PASSED'
-                    : 'REQUIRES ATTENTION'}
+                    ? 'COLLECTED'
+                    : 'COLLECTED'}
                 </p>
               </div>
             </div>

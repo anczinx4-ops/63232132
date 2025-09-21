@@ -6,6 +6,25 @@ const PlatformRating: React.FC = () => {
   const [feedback, setFeedback] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [platformStats, setPlatformStats] = useState({ totalRatings: 0, averageRating: 0, totalReviews: 0 });
+
+  useEffect(() => {
+    loadPlatformStats();
+  }, []);
+
+  const loadPlatformStats = () => {
+    const existingRatings = JSON.parse(localStorage.getItem('platformRatings') || '[]');
+    const totalRatings = existingRatings.length;
+    const averageRating = totalRatings > 0 
+      ? existingRatings.reduce((sum: number, r: any) => sum + r.rating, 0) / totalRatings 
+      : 0;
+    
+    setPlatformStats({
+      totalRatings,
+      averageRating,
+      totalReviews: totalRatings
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +43,7 @@ const PlatformRating: React.FC = () => {
     localStorage.setItem('platformRatings', JSON.stringify(existingRatings));
     
     setSubmitted(true);
+    loadPlatformStats(); // Refresh stats after submission
   };
 
   const handleReset = () => {
@@ -134,23 +154,29 @@ const PlatformRating: React.FC = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-800">4.8</div>
+              <div className="text-2xl font-bold text-green-800">
+                {platformStats.averageRating > 0 ? platformStats.averageRating.toFixed(1) : '0'}
+              </div>
               <div className="text-sm text-green-600">Average Rating</div>
               <div className="flex justify-center mt-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`h-4 w-4 ${star <= 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                    className={`h-4 w-4 ${star <= Math.round(platformStats.averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                   />
                 ))}
               </div>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-800">1,247</div>
+              <div className="text-2xl font-bold text-blue-800">{platformStats.totalReviews}</div>
               <div className="text-sm text-blue-600">Total Reviews</div>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-800">98%</div>
+              <div className="text-2xl font-bold text-purple-800">
+                {platformStats.totalRatings > 0 
+                  ? Math.round((platformStats.totalRatings / platformStats.totalRatings) * 100) 
+                  : 0}%
+              </div>
               <div className="text-sm text-purple-600">Satisfaction Rate</div>
             </div>
           </div>

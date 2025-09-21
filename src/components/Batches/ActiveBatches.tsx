@@ -114,7 +114,23 @@ const ActiveBatches: React.FC = () => {
   const filteredBatches = batches.filter(batch => {
     if (filter === 'all') return true;
     if (filter === 'accessible') return canUserAccess(batch);
+    if (filter === 'manufactured') return batch.currentStatus === 'MANUFACTURED';
     return batch.currentStatus.toLowerCase() === filter.toLowerCase();
+  });
+
+  // Sort batches: incomplete batches first, then completed batches
+  const sortedBatches = filteredBatches.sort((a, b) => {
+    // If one is completed and other is not, incomplete comes first
+    if (a.currentStatus === 'MANUFACTURED' && b.currentStatus !== 'MANUFACTURED') return 1;
+    if (a.currentStatus !== 'MANUFACTURED' && b.currentStatus === 'MANUFACTURED') return -1;
+    
+    // Among incomplete batches, sort by last updated (most recent first)
+    if (a.currentStatus !== 'MANUFACTURED' && b.currentStatus !== 'MANUFACTURED') {
+      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+    }
+    
+    // Among completed batches, sort by last updated (most recent first)
+    return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
   });
 
   if (loading) {
@@ -141,8 +157,8 @@ const ActiveBatches: React.FC = () => {
               <Package className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-green-800">Active Batches</h2>
-              <p className="text-green-600">Ongoing batches in the supply chain</p>
+              <h2 className="text-2xl font-bold text-green-800">Batches</h2>
+              <p className="text-green-600">All batches in the supply chain</p>
             </div>
           </div>
 
@@ -152,11 +168,12 @@ const ActiveBatches: React.FC = () => {
               onChange={(e) => setFilter(e.target.value)}
               className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
             >
-              <option value="all">All Active Batches</option>
+              <option value="all">All Batches</option>
               <option value="accessible">Accessible to Me</option>
               <option value="collected">Collected</option>
               <option value="quality_tested">Quality Tested</option>
               <option value="processed">Processed</option>
+              <option value="manufactured">Completed</option>
             </select>
             
             <button
@@ -168,20 +185,22 @@ const ActiveBatches: React.FC = () => {
           </div>
         </div>
 
-        {filteredBatches.length === 0 ? (
+        {sortedBatches.length === 0 ? (
           <div className="text-center py-12">
             <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Batches</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Batches Found</h3>
             <p className="text-gray-600">
               {filter === 'accessible' 
                 ? 'No batches are currently accessible for your role'
-                : 'No batches found. Create a new collection to get started.'
+                : filter === 'manufactured'
+                  ? 'No completed batches found.'
+                  : 'No batches found. Create a new collection to get started.'
               }
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBatches.map((batch) => (
+            {sortedBatches.map((batch) => (
               <div
                 key={batch.batchId}
                 className={`bg-white border-2 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 ${

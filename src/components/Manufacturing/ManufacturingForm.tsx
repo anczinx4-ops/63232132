@@ -14,6 +14,8 @@ const ManufacturingForm: React.FC = () => {
   const [error, setError] = useState('');
   const [qrResult, setQrResult] = useState<any>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [location, setLocation] = useState<any>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     batchId: '',
@@ -53,6 +55,32 @@ const ManufacturingForm: React.FC = () => {
     'milliliters',
     'liters'
   ];
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  const getCurrentLocation = () => {
+    setLocationLoading(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude.toString(),
+            longitude: position.coords.longitude.toString(),
+            timestamp: new Date().toISOString()
+          });
+          setLocationLoading(false);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setLocationLoading(false);
+        }
+      );
+    } else {
+      setLocationLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -162,8 +190,8 @@ const ManufacturingForm: React.FC = () => {
         notes: formData.notes,
         ipfsHash: metadataUpload.data.ipfsHash,
         location: {
-          latitude: '0',
-          longitude: '0',
+          latitude: location?.latitude || '0',
+          longitude: location?.longitude || '0',
           zone: 'Manufacturing Facility'
         },
         qrCodeHash: qrResult.qrHash
@@ -508,6 +536,52 @@ const ManufacturingForm: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Location Info */}
+          {location && (
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4 border border-orange-200">
+              <h3 className="text-sm font-semibold text-orange-800 mb-2 flex items-center">
+                <MapPin className="h-4 w-4 mr-2" />
+                Manufacturing Location & Timestamp
+              </h3>
+              <div className="grid grid-cols-3 gap-4 text-xs">
+                <div>
+                  <span className="font-medium text-orange-600">Latitude:</span>
+                  <p className="text-orange-900">{parseFloat(location.latitude).toFixed(6)}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-orange-600">Longitude:</span>
+                  <p className="text-orange-900">{parseFloat(location.longitude).toFixed(6)}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-orange-600">Timestamp:</span>
+                  <p className="text-orange-900">{new Date(location.timestamp).toLocaleString()}</p>
+                </div>
+              </div>
+              {locationLoading && (
+                <div className="mt-2 text-xs text-orange-600 flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b border-orange-600 mr-2"></div>
+                  Getting location...
+                </div>
+              )}
+            </div>
+          )}
+
+          {!location && !locationLoading && (
+            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-yellow-600" />
+                <span className="text-sm text-yellow-800">Location not captured</span>
+                <button
+                  type="button"
+                  onClick={getCurrentLocation}
+                  className="text-xs text-yellow-600 underline hover:text-yellow-700"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Notes */}
           <div>
