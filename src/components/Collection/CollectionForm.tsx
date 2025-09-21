@@ -323,6 +323,13 @@ const CollectionForm: React.FC = () => {
             }}
             title="Collection QR Code"
             subtitle="Scan to track this batch"
+            allowCustomization={true}
+            batchData={{
+              batchId: qrResult.batchId,
+              type: 'collection',
+              herbSpecies: qrResult.herbSpecies,
+              participant: formData.collectorGroupName
+            }}
           />
 
           <button

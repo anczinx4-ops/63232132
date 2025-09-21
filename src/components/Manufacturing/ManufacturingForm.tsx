@@ -299,6 +299,12 @@ const ManufacturingForm: React.FC = () => {
             }}
             title="Final Product QR Code"
             subtitle="Consumer can scan to view complete traceability"
+            allowCustomization={true}
+            batchData={{
+              batchId: qrResult.batchId,
+              type: 'manufacturing',
+              participant: formData.manufacturerName
+            }}
           />
 
           <button

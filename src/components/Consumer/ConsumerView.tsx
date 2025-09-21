@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { QrCode, Shield, Leaf, Award, MapPin, Calendar } from 'lucide-react';
+import { QrCode, Shield, Leaf, Award, MapPin, Calendar, Download } from 'lucide-react';
 import blockchainService from '../../services/blockchainService';
 import ipfsService from '../../services/ipfsService';
 import qrService from '../../services/qrService';
+import qrApiService from '../../services/qrApiService';
 
 const ConsumerView: React.FC = () => {
   const [qrInput, setQrInput] = useState('');
   const [productInfo, setProductInfo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [trackingQR, setTrackingQR] = useState<string | null>(null);
   
   // Set up real-time updates
   useEffect(() => {
@@ -24,6 +26,16 @@ const ConsumerView: React.FC = () => {
     return () => window.removeEventListener('herbionyx-data-update', handleDataUpdate);
   }, [qrInput, productInfo]);
 
+  const generateTrackingQR = async (trackingUrl: string) => {
+    try {
+      const result = await qrService.generateTrackingQR(trackingUrl);
+      if (result.success && result.dataURL) {
+        setTrackingQR(result.dataURL);
+      }
+    } catch (error) {
+      console.error('Failed to generate tracking QR:', error);
+    }
+  };
   const handleQRScan = async (e: React.FormEvent, skipFormCheck = false) => {
     if (!skipFormCheck) {
       e.preventDefault();
@@ -33,6 +45,7 @@ const ConsumerView: React.FC = () => {
     setLoading(true);
     if (!skipFormCheck) setProductInfo(null);
     setError('');
+    setTrackingQR(null);
     
     try {
       // Parse QR code or event ID
@@ -68,6 +81,10 @@ const ConsumerView: React.FC = () => {
       };
       
       setProductInfo(productInfo);
+      
+      // Generate tracking QR for this product
+      const trackingUrl = `${window.location.origin}/track/${eventId}`;
+      await generateTrackingQR(trackingUrl);
     } catch (error) {
       console.error('Consumer verification error:', error);
       if (!skipFormCheck) {
@@ -278,6 +295,39 @@ const ConsumerView: React.FC = () => {
                 ))}
               </div>
             </div>
+            
+            {/* Tracking QR Code for Sharing */}
+            {trackingQR && (
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">Share This Product</h4>
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border">
+                    <img 
+                      src={trackingQR} 
+                      alt="Tracking QR Code"
+                      className="w-32 h-32 block"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 text-center">
+                    Scan this QR code to quickly access this product's verification page
+                  </p>
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = trackingQR;
+                      link.download = `${productInfo.batchId}-tracking-qr.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Download QR</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -292,6 +342,9 @@ const ConsumerView: React.FC = () => {
             <div className="bg-emerald-50 rounded-lg p-4 max-w-md mx-auto">
               <p className="text-sm text-emerald-700 font-medium mb-2">Try this demo code:</p>
               <p className="text-sm text-emerald-600 font-mono">MFG-1234567890-3456</p>
+              <p className="text-xs text-emerald-600 mt-2">
+                Enhanced with QR API integration for better reliability
+              </p>
             </div>
           </div>
         )}

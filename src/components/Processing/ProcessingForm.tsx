@@ -297,6 +297,12 @@ const ProcessingForm: React.FC = () => {
             }}
             title="Processing QR Code"
             subtitle="Scan to view processing details"
+            allowCustomization={true}
+            batchData={{
+              batchId: qrResult.batchId,
+              type: 'processing',
+              participant: formData.processorName
+            }}
           />
 
           <button

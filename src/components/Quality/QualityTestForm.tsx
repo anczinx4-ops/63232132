@@ -351,6 +351,12 @@ const QualityTestForm: React.FC = () => {
             }}
             title="Quality Test QR Code"
             subtitle="Scan to view test results"
+            allowCustomization={true}
+            batchData={{
+              batchId: qrResult.batchId,
+              type: 'quality_test',
+              participant: formData.testerName
+            }}
           />
 
           <button
