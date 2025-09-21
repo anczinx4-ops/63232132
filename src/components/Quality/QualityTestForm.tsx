@@ -57,7 +57,6 @@ const QualityTestForm: React.FC = () => {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [customParameters, setCustomParameters] = useState<CustomParameter[]>([]);
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
-  const [location, setLocation] = useState<LocationData | null>(null);
   const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<FormData>({
